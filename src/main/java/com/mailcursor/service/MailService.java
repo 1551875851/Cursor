@@ -18,19 +18,25 @@ public class MailService {
 
     private final JavaMailSender mailSender;
     private final MailProperties mailProperties;
+    private final LogPersistenceService logPersistenceService;
 
     @Value("${spring.mail.username}")
     private String fromAddress;
 
-    public MailService(JavaMailSender mailSender, MailProperties mailProperties) {
+    public MailService(JavaMailSender mailSender,
+                       MailProperties mailProperties,
+                       LogPersistenceService logPersistenceService) {
         this.mailSender = mailSender;
         this.mailProperties = mailProperties;
+        this.logPersistenceService = logPersistenceService;
     }
 
-    public void sendToSelf(String subject, String content) {
+    public void sendToSelf(String subject, String content, String clientIp) {
         String recipient = mailProperties.getAllowedRecipient();
         if (!StringUtils.hasText(recipient)) {
             log.error("邮件发送失败：未配置 mail.allowed-recipient");
+            logPersistenceService.saveMailLog(clientIp, fromAddress, recipient, subject, content,
+                    "FAILED", "mail.allowed-recipient is not configured");
             throw new IllegalStateException("mail.allowed-recipient is not configured");
         }
 
@@ -45,8 +51,12 @@ public class MailService {
 
             mailSender.send(mimeMessage);
             log.info("邮件发送成功，收件人={}，主题={}", recipient, subject);
+            logPersistenceService.saveMailLog(clientIp, fromAddress, recipient, subject, content,
+                    "SUCCESS", null);
         } catch (Exception ex) {
             log.error("邮件发送失败，收件人={}，主题={}，原因={}", recipient, subject, ex.getMessage(), ex);
+            logPersistenceService.saveMailLog(clientIp, fromAddress, recipient, subject, content,
+                    "FAILED", ex.getMessage());
             if (ex instanceof RuntimeException) {
                 throw (RuntimeException) ex;
             }

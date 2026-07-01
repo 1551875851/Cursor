@@ -27,16 +27,19 @@ public class RuankaoScanService {
     private final RestTemplate restTemplate;
     private final RuankaoProperties ruankaoProperties;
     private final MailService mailService;
+    private final LogPersistenceService logPersistenceService;
 
     public RuankaoScanService(RestTemplate restTemplate,
                               RuankaoProperties ruankaoProperties,
-                              MailService mailService) {
+                              MailService mailService,
+                              LogPersistenceService logPersistenceService) {
         this.restTemplate = restTemplate;
         this.ruankaoProperties = ruankaoProperties;
         this.mailService = mailService;
+        this.logPersistenceService = logPersistenceService;
     }
 
-    public ScanResult scanAndNotify() {
+    public ScanResult scanAndNotify(String triggerType, String clientIp) {
         log.info("开始扫描软考首页工作动态，url={}，关键字={}",
                 ruankaoProperties.getHomepageUrl(), ruankaoProperties.getKeywords());
         try {
@@ -46,7 +49,11 @@ public class RuankaoScanService {
 
             if (matchedTitles.isEmpty()) {
                 log.info("工作动态中未发现成绩查询相关通知");
-                return ScanResult.noMatch();
+                ScanResult result = ScanResult.noMatch();
+                logPersistenceService.saveRuankaoScanLog(clientIp, triggerType,
+                        result.isMatched(), result.isEmailSent(), result.getMessage(),
+                        result.getMatchedTitles(), "SUCCESS", null);
+                return result;
             }
 
             log.info("工作动态匹配到 {} 条成绩查询通知：{}", matchedTitles.size(), matchedTitles);
@@ -54,12 +61,19 @@ public class RuankaoScanService {
                     ruankaoProperties.getNotifySubject(), ruankaoProperties.getNotifyContent());
             mailService.sendToSelf(
                     ruankaoProperties.getNotifySubject(),
-                    ruankaoProperties.getNotifyContent()
+                    ruankaoProperties.getNotifyContent(),
+                    clientIp
             );
             log.info("软考成绩通知邮件已发送，匹配标题={}", matchedTitles.get(0));
-            return ScanResult.sent(matchedTitles);
+            ScanResult result = ScanResult.sent(matchedTitles);
+            logPersistenceService.saveRuankaoScanLog(clientIp, triggerType,
+                    result.isMatched(), result.isEmailSent(), result.getMessage(),
+                    result.getMatchedTitles(), "SUCCESS", null);
+            return result;
         } catch (Exception ex) {
             log.error("软考工作动态扫描失败：{}", ex.getMessage(), ex);
+            logPersistenceService.saveRuankaoScanLog(clientIp, triggerType,
+                    false, false, "软考工作动态扫描失败", null, "FAILED", ex.getMessage());
             throw ex;
         }
     }

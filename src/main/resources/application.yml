@@ -25,6 +25,16 @@ spring:
             class: javax.net.ssl.SSLSocketFactory
             port: 465
             fallback: false
+  datasource:
+    url: jdbc:sqlite:${mailcursor.data-dir}/mailcursor.db
+    driver-class-name: org.sqlite.JDBC
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+mailcursor:
+  data-dir: ./data
 
 # 仅允许向此邮箱发送（个人邮箱，只能发给自己）
 mail:

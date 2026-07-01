@@ -29,7 +29,7 @@ public class RuankaoScanController {
     public ResponseEntity<Map<String, Object>> scan(HttpServletRequest httpRequest) {
         String clientIp = ClientIpUtils.getClientIp(httpRequest);
         log.info("收到软考工作动态扫描请求，clientIp={}", clientIp);
-        RuankaoScanService.ScanResult result = ruankaoScanService.scanAndNotify();
+        RuankaoScanService.ScanResult result = ruankaoScanService.scanAndNotify("API", clientIp);
         log.info("软考扫描完成，clientIp={}，matched={}，emailSent={}，message={}",
                 clientIp, result.isMatched(), result.isEmailSent(), result.getMessage());
         Map<String, Object> body = new LinkedHashMap<String, Object>();

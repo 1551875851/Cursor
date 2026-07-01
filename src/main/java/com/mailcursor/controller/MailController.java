@@ -34,7 +34,7 @@ public class MailController {
                                                    HttpServletRequest httpRequest) {
         String clientIp = ClientIpUtils.getClientIp(httpRequest);
         log.info("收到邮件发送请求，clientIp={}，主题={}", clientIp, request.getSubject());
-        mailService.sendToSelf(request.getSubject(), request.getContent());
+        mailService.sendToSelf(request.getSubject(), request.getContent(), clientIp);
         log.info("邮件发送接口处理完成，clientIp={}，主题={}", clientIp, request.getSubject());
         return ResponseEntity.ok(Collections.singletonMap("message", "邮件发送成功"));
     }

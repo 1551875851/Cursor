@@ -3,7 +3,7 @@ set -e
 
 source "$(dirname "$0")/mailcursor-env.sh"
 
-mkdir -p "$CONFIG_DIR" "$LOG_DIR"
+mkdir -p "$CONFIG_DIR" "$LOG_DIR" "$MAILCURSOR_HOME/data"
 
 if [ ! -f "$CONFIG_DIR/application.yml" ]; then
   if [ -f "$SCRIPT_DIR/config/application.yml.example" ]; then

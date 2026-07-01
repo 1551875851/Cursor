@@ -25,10 +25,20 @@ spring:
             class: javax.net.ssl.SSLSocketFactory
             port: 465
             fallback: false
+  datasource:
+    url: jdbc:sqlite:${mailcursor.data-dir}/mailcursor.db
+    driver-class-name: org.sqlite.JDBC
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
 
 # 仅允许向此邮箱发送（个人邮箱，只能发给自己）
 mail:
   allowed-recipient: your-qq-email@qq.com
+
+mailcursor:
+  data-dir: /app/mailcursor/data
 
 # 软考首页工作动态扫描（https://www.ruankao.org.cn/）
 ruankao:
