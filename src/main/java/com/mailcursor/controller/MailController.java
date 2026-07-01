@@ -1,6 +1,7 @@
 package com.mailcursor.controller;
 
 import com.mailcursor.service.MailService;
+import com.mailcursor.util.ClientIpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotBlank;
 import java.util.Collections;
 import java.util.Map;
@@ -28,10 +30,12 @@ public class MailController {
     }
 
     @PostMapping("/send")
-    public ResponseEntity<Map<String, String>> send(@RequestBody @Validated SendMailRequest request) {
-        log.info("收到邮件发送请求，主题={}", request.getSubject());
+    public ResponseEntity<Map<String, String>> send(@RequestBody @Validated SendMailRequest request,
+                                                   HttpServletRequest httpRequest) {
+        String clientIp = ClientIpUtils.getClientIp(httpRequest);
+        log.info("收到邮件发送请求，clientIp={}，主题={}", clientIp, request.getSubject());
         mailService.sendToSelf(request.getSubject(), request.getContent());
-        log.info("邮件发送接口处理完成，主题={}", request.getSubject());
+        log.info("邮件发送接口处理完成，clientIp={}，主题={}", clientIp, request.getSubject());
         return ResponseEntity.ok(Collections.singletonMap("message", "邮件发送成功"));
     }
 
