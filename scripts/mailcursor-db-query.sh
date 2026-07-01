@@ -48,9 +48,16 @@ export DB_SQL="$*"
 export DB_ARG="$ARG"
 
 python3 <<'PY'
+import io
 import os
 import sqlite3
 import sys
+
+# 避免 SSH/终端环境下中文输出乱码
+if hasattr(sys.stdout, "buffer"):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "buffer"):
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 db_path = os.environ["DB_PATH"]
 cmd = os.environ["DB_CMD"]
@@ -61,18 +68,33 @@ conn = sqlite3.connect(db_path)
 conn.row_factory = sqlite3.Row
 cur = conn.cursor()
 
+def display_width(text):
+    width = 0
+    for ch in str(text):
+        width += 2 if ord(ch) > 127 else 1
+    return width
+
 def print_rows(rows, columns=None):
     if not rows:
         print("(无记录)")
         return
     if columns is None:
         columns = rows[0].keys()
-    widths = {col: max(len(col), *(len(str(row[col]) if row[col] is not None else "") for row in rows)) for col in columns}
-    header = " | ".join(col.ljust(widths[col]) for col in columns)
+    widths = {}
+    for col in columns:
+        widths[col] = display_width(col)
+        for row in rows:
+            widths[col] = max(widths[col], display_width(row[col] if row[col] is not None else ""))
+
+    def pad(value, width):
+        text = str(value if value is not None else "")
+        return text + " " * max(0, width - display_width(text))
+
+    header = " | ".join(pad(col, widths[col]) for col in columns)
     print(header)
     print("-+-".join("-" * widths[col] for col in columns))
     for row in rows:
-        print(" | ".join(str(row[col] if row[col] is not None else "").ljust(widths[col]) for col in columns))
+        print(" | ".join(pad(row[col], widths[col]) for col in columns))
 
 if cmd == "status":
     size = os.path.getsize(db_path)
