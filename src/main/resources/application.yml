@@ -1,0 +1,41 @@
+server:
+  port: 8080
+
+logging:
+  config: classpath:logback.xml
+
+spring:
+  mail:
+    # QQ 邮箱 SMTP 配置（发件人账号）
+    host: smtp.qq.com
+    port: 465
+    username: 1551875851@qq.com
+    # 填写 QQ 邮箱「设置 -> 账户 -> POP3/SMTP服务」中生成的授权码，不是 QQ 登录密码
+    password: kokzrhzfkqsigiji
+    protocol: smtp
+    default-encoding: UTF-8
+    properties:
+      mail:
+        debug: false
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+            port: 465
+            fallback: false
+
+# 仅允许向此邮箱发送（个人邮箱，只能发给自己）
+mail:
+  allowed-recipient: 1551875851@qq.com
+
+# 软考首页工作动态扫描（https://www.ruankao.org.cn/）
+ruankao:
+  homepage-url: https://www.ruankao.org.cn/
+  keywords:
+    - 成绩查询
+  notify-subject: 软考成绩通知
+  notify-content: 软件成绩已出，可登录查询
+  schedule-enabled: true
+  schedule-cron: "0 0 9,15,21 * * ?"
