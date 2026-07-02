@@ -42,14 +42,22 @@ sleep 2
 "$(dirname "$0")/mailcursor-start.sh"
 
 echo "等待服务启动..."
-sleep "$STARTUP_WAIT_SECONDS"
-
-HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$HEALTH_URL" || echo "000")
-if [ "$HTTP_CODE" != "200" ]; then
-  echo "健康检查失败，status=$HTTP_CODE，开始自动回退"
-  "$(dirname "$0")/mailcursor-rollback.sh" --auto
-  exit 1
+if [ -f "$SCRIPT_DIR/deploy/health-check.sh" ]; then
+  if ! bash "$SCRIPT_DIR/deploy/health-check.sh"; then
+    echo "健康检查失败，开始自动回退"
+    "$(dirname "$0")/mailcursor-rollback.sh" --auto
+    exit 1
+  fi
+else
+  sleep "$STARTUP_WAIT_SECONDS"
+  HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$HEALTH_URL" || echo "000")
+  if [ "$HTTP_CODE" != "200" ]; then
+    echo "健康检查失败，status=$HTTP_CODE，开始自动回退"
+    "$(dirname "$0")/mailcursor-rollback.sh" --auto
+    exit 1
+  fi
+  echo "升级成功，status=$HTTP_CODE"
 fi
 
-echo "升级成功，status=$HTTP_CODE"
+echo "升级成功"
 rm -f "$NEW_JAR" 2>/dev/null || true
