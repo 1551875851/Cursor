@@ -1,5 +1,6 @@
 package com.mailcursor.config;
 
+import com.mailcursor.config.database.DatabaseType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,8 +15,20 @@ public class DatabaseConfig {
     @Value("${mailcursor.data-dir:./data}")
     private String dataDir;
 
+    @Value("${mailcursor.database.type:}")
+    private String databaseType;
+
     @PostConstruct
     public void ensureDataDirectory() throws IOException {
-        Files.createDirectories(Paths.get(dataDir));
+        if (shouldEnsureLocalDataDir()) {
+            Files.createDirectories(Paths.get(dataDir));
+        }
+    }
+
+    private boolean shouldEnsureLocalDataDir() {
+        if (DatabaseType.SQLITE.getCode().equalsIgnoreCase(databaseType)) {
+            return true;
+        }
+        return !org.springframework.util.StringUtils.hasText(databaseType);
     }
 }

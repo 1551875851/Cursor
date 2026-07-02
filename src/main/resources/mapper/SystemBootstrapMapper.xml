@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mailcursor.mapper.SystemBootstrapMapper">
+
+    <select id="countUsers" resultType="int">
+        SELECT COUNT(1) FROM sys_user
+    </select>
+
+    <select id="countMenuByPath" resultType="int">
+        SELECT COUNT(1) FROM sys_menu WHERE path = #{path}
+    </select>
+
+    <select id="selectSystemMenuId" resultType="long">
+        SELECT id FROM sys_menu WHERE menu_name = '系统管理' AND parent_id = 0 LIMIT 1
+    </select>
+
+    <select id="selectSystemMenuId" resultType="long" databaseId="oracle">
+        SELECT id FROM sys_menu WHERE menu_name = '系统管理' AND parent_id = 0
+        FETCH FIRST 1 ROWS ONLY
+    </select>
+
+    <select id="selectAllRoleIds" resultType="long">
+        SELECT id FROM sys_role
+    </select>
+
+    <select id="countRoleMenu" resultType="int">
+        SELECT COUNT(1) FROM sys_role_menu WHERE role_id = #{roleId} AND menu_id = #{menuId}
+    </select>
+
+    <insert id="insertRoleMenu">
+        INSERT INTO sys_role_menu (role_id, menu_id) VALUES (#{roleId}, #{menuId})
+    </insert>
+
+    <update id="bumpRootMenuSortOrder">
+        UPDATE sys_menu SET sort_order = sort_order + 1
+        WHERE id &lt;&gt; #{excludeMenuId} AND parent_id = 0
+    </update>
+</mapper>

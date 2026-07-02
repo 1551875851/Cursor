@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mailcursor.mapper.DashboardStatsMapper">
+
+    <select id="countTodayAccess" resultType="int">
+        SELECT COUNT(1) FROM access_log
+        WHERE log_type = 'COMPLETE' AND created_at LIKE #{todayPrefix}
+    </select>
+
+    <select id="countTodayActiveUsers" resultType="int">
+        SELECT COUNT(DISTINCT client_ip) FROM access_log
+        WHERE log_type = 'COMPLETE' AND request_uri LIKE '/api/%' AND created_at LIKE #{todayPrefix}
+    </select>
+
+    <select id="countActiveUsers" resultType="int">
+        SELECT COUNT(1) FROM sys_user WHERE status = 1
+    </select>
+
+    <select id="countTodayApiSuccess" resultType="int">
+        SELECT COUNT(1) FROM access_log
+        WHERE log_type = 'COMPLETE' AND request_uri LIKE '/api/%'
+          AND response_status &gt;= 200 AND response_status &lt; 400
+          AND created_at LIKE #{todayPrefix}
+    </select>
+
+    <select id="countTodayApiTotal" resultType="int">
+        SELECT COUNT(1) FROM access_log
+        WHERE log_type = 'COMPLETE' AND request_uri LIKE '/api/%' AND created_at LIKE #{todayPrefix}
+    </select>
+
+    <select id="countAccessByDay" resultType="com.mailcursor.mapper.dto.DayCount">
+        SELECT SUBSTR(created_at, 1, 10) AS dayKey, COUNT(1) AS cnt
+        FROM access_log
+        WHERE log_type = 'COMPLETE' AND SUBSTR(created_at, 1, 10) &gt;= #{startDay}
+        GROUP BY SUBSTR(created_at, 1, 10)
+    </select>
+
+    <select id="countAccessByDay" resultType="com.mailcursor.mapper.dto.DayCount" databaseId="mysql">
+        SELECT SUBSTRING(created_at, 1, 10) AS dayKey, COUNT(1) AS cnt
+        FROM access_log
+        WHERE log_type = 'COMPLETE' AND SUBSTRING(created_at, 1, 10) &gt;= #{startDay}
+        GROUP BY SUBSTRING(created_at, 1, 10)
+    </select>
+
+    <select id="countActiveUsersByDay" resultType="com.mailcursor.mapper.dto.DayCount">
+        SELECT SUBSTR(created_at, 1, 10) AS dayKey, COUNT(DISTINCT client_ip) AS cnt
+        FROM access_log
+        WHERE log_type = 'COMPLETE' AND request_uri LIKE '/api/%'
+          AND SUBSTR(created_at, 1, 10) &gt;= #{startDay}
+        GROUP BY SUBSTR(created_at, 1, 10)
+    </select>
+
+    <select id="countActiveUsersByDay" resultType="com.mailcursor.mapper.dto.DayCount" databaseId="mysql">
+        SELECT SUBSTRING(created_at, 1, 10) AS dayKey, COUNT(DISTINCT client_ip) AS cnt
+        FROM access_log
+        WHERE log_type = 'COMPLETE' AND request_uri LIKE '/api/%'
+          AND SUBSTRING(created_at, 1, 10) &gt;= #{startDay}
+        GROUP BY SUBSTRING(created_at, 1, 10)
+    </select>
+
+    <select id="countFeatureByUri" resultType="com.mailcursor.mapper.dto.NameCount">
+        SELECT request_uri AS uri, COUNT(1) AS count
+        FROM access_log
+        WHERE log_type = 'COMPLETE' AND request_uri LIKE '/api/%'
+        GROUP BY request_uri
+    </select>
+
+    <select id="countMailSendLog" resultType="int">
+        SELECT COUNT(1) FROM mail_send_log
+    </select>
+
+    <select id="countRuankaoScanLog" resultType="int">
+        SELECT COUNT(1) FROM ruankao_scan_log
+    </select>
+
+    <select id="countApiRanking" resultType="com.mailcursor.mapper.dto.NameCount">
+        SELECT request_uri AS uri, COUNT(1) AS count
+        FROM access_log
+        WHERE log_type = 'COMPLETE' AND request_uri LIKE '/api/%'
+        GROUP BY request_uri ORDER BY count DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="countApiRanking" resultType="com.mailcursor.mapper.dto.NameCount" databaseId="oracle">
+        SELECT request_uri AS uri, COUNT(1) AS count
+        FROM access_log
+        WHERE log_type = 'COMPLETE' AND request_uri LIKE '/api/%'
+        GROUP BY request_uri ORDER BY count DESC
+        FETCH FIRST #{limit} ROWS ONLY
+    </select>
+
+    <select id="countApiSuccess" resultType="int">
+        SELECT COUNT(1) FROM access_log
+        WHERE log_type = 'COMPLETE' AND request_uri LIKE '/api/%'
+          AND response_status &gt;= 200 AND response_status &lt; 400
+    </select>
+
+    <select id="countApiClientError" resultType="int">
+        SELECT COUNT(1) FROM access_log
+        WHERE log_type = 'COMPLETE' AND request_uri LIKE '/api/%'
+          AND response_status &gt;= 400 AND response_status &lt; 500
+    </select>
+
+    <select id="countApiServerError" resultType="int">
+        SELECT COUNT(1) FROM access_log
+        WHERE log_type = 'COMPLETE' AND request_uri LIKE '/api/%'
+          AND response_status &gt;= 500
+    </select>
+
+    <select id="countApiUnknown" resultType="int">
+        SELECT COUNT(1) FROM access_log
+        WHERE log_type = 'COMPLETE' AND request_uri LIKE '/api/%'
+          AND (response_status IS NULL OR response_status &lt; 200)
+    </select>
+</mapper>

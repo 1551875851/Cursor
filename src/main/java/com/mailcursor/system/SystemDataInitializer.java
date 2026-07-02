@@ -1,6 +1,6 @@
 package com.mailcursor.system;
 
-import com.mailcursor.common.DateTimeUtils;
+import com.mailcursor.mapper.SystemBootstrapMapper;
 import com.mailcursor.system.model.SysMenu;
 import com.mailcursor.system.model.SysOrg;
 import com.mailcursor.system.model.SysRole;
@@ -12,29 +12,30 @@ import com.mailcursor.system.service.SysUserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Component
+@Order(1)
 public class SystemDataInitializer implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(SystemDataInitializer.class);
 
-    private final JdbcTemplate jdbcTemplate;
+    private final SystemBootstrapMapper systemBootstrapMapper;
     private final SysOrgService sysOrgService;
     private final SysRoleService sysRoleService;
     private final SysMenuService sysMenuService;
     private final SysUserService sysUserService;
 
-    public SystemDataInitializer(JdbcTemplate jdbcTemplate,
+    public SystemDataInitializer(SystemBootstrapMapper systemBootstrapMapper,
                                  SysOrgService sysOrgService,
                                  SysRoleService sysRoleService,
                                  SysMenuService sysMenuService,
                                  SysUserService sysUserService) {
-        this.jdbcTemplate = jdbcTemplate;
+        this.systemBootstrapMapper = systemBootstrapMapper;
         this.sysOrgService = sysOrgService;
         this.sysRoleService = sysRoleService;
         this.sysMenuService = sysMenuService;
@@ -43,8 +44,7 @@ public class SystemDataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        Integer count = jdbcTemplate.queryForObject("SELECT COUNT(1) FROM sys_user", Integer.class);
-        if (count != null && count > 0) {
+        if (systemBootstrapMapper.countUsers() > 0) {
             return;
         }
         log.info("初始化系统基础数据...");
@@ -68,6 +68,7 @@ public class SystemDataInitializer implements CommandLineRunner {
         role.setRemark("拥有全部菜单权限");
         Long roleId = sysRoleService.create(role);
 
+        Long homeMenuId = createMenu(0L, "首页", "MENU", "/home", "DashboardHome", "el-icon-s-home", 0);
         Long emailMenuId = createMenu(0L, "邮件管理", "DIR", null, null, "el-icon-message", 1);
         Long mailItemId = createMenu(emailMenuId, "发送邮件", "MENU", "/email/mail", "MailSend", "el-icon-s-promotion", 1);
         Long ruankaoItemId = createMenu(emailMenuId, "软考扫描", "MENU", "/email/ruankao", "RuankaoScan", "el-icon-search", 2);
@@ -77,10 +78,11 @@ public class SystemDataInitializer implements CommandLineRunner {
         Long roleMenuId = createMenu(systemMenuId, "角色管理", "MENU", "/system/role", "SystemRole", "el-icon-s-custom", 2);
         Long orgMenuId = createMenu(systemMenuId, "机构管理", "MENU", "/system/org", "SystemOrg", "el-icon-office-building", 3);
         Long menuMenuId = createMenu(systemMenuId, "菜单管理", "MENU", "/system/menu", "SystemMenu", "el-icon-menu", 4);
+        Long operLogMenuId = createMenu(systemMenuId, "日志管理", "MENU", "/system/oper-log", "SystemOperLog", "el-icon-document-copy", 5);
 
         List<Long> allMenuIds = Arrays.asList(
-                emailMenuId, mailItemId, ruankaoItemId,
-                systemMenuId, userMenuId, roleMenuId, orgMenuId, menuMenuId);
+                homeMenuId, emailMenuId, mailItemId, ruankaoItemId,
+                systemMenuId, userMenuId, roleMenuId, orgMenuId, menuMenuId, operLogMenuId);
         sysRoleService.saveRoleMenus(roleId, allMenuIds);
 
         SysUser admin = new SysUser();

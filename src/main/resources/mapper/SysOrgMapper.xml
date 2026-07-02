@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mailcursor.mapper.SysOrgMapper">
+
+    <resultMap id="SysOrgMap" type="com.mailcursor.system.model.SysOrg">
+        <id property="id" column="id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="orgName" column="org_name"/>
+        <result property="orgCode" column="org_code"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="SysOrgMap">
+        SELECT id, parent_id, org_name, org_code, sort_order, status, created_at, updated_at
+        FROM sys_org ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <select id="selectById" resultMap="SysOrgMap">
+        SELECT id, parent_id, org_name, org_code, sort_order, status, created_at, updated_at
+        FROM sys_org WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_org (parent_id, org_name, org_code, sort_order, status, created_at, updated_at)
+        VALUES (#{parentId}, #{orgName}, #{orgCode}, #{sortOrder}, #{status}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update">
+        UPDATE sys_org
+        SET parent_id = #{parentId}, org_name = #{orgName}, org_code = #{orgCode},
+            sort_order = #{sortOrder}, status = #{status}, updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <select id="countChildren" resultType="int">
+        SELECT COUNT(1) FROM sys_org WHERE parent_id = #{id}
+    </select>
+
+    <select id="countUsersByOrgId" resultType="int">
+        SELECT COUNT(1) FROM sys_user WHERE org_id = #{orgId}
+    </select>
+
+    <delete id="deleteById">
+        DELETE FROM sys_org WHERE id = #{id}
+    </delete>
+</mapper>

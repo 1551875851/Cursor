@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mailcursor.mapper.AppLogMapper">
+
+    <insert id="insertAccessLog">
+        INSERT INTO access_log (client_ip, http_method, request_uri, response_status, cost_ms,
+                                log_type, error_message, created_at)
+        VALUES (#{clientIp}, #{httpMethod}, #{requestUri}, #{responseStatus}, #{costMs},
+                #{logType}, #{errorMessage}, #{createdAt})
+    </insert>
+
+    <insert id="insertMailLog">
+        INSERT INTO mail_send_log (client_ip, sender, recipient, subject, content, status,
+                                   error_message, created_at)
+        VALUES (#{clientIp}, #{sender}, #{recipient}, #{subject}, #{content}, #{status},
+                #{errorMessage}, #{createdAt})
+    </insert>
+
+    <insert id="insertRuankaoScanLog">
+        INSERT INTO ruankao_scan_log (client_ip, trigger_type, matched, email_sent, message,
+                                      matched_titles, status, error_message, created_at)
+        VALUES (#{clientIp}, #{triggerType}, #{matched}, #{emailSent}, #{message},
+                #{matchedTitles}, #{status}, #{errorMessage}, #{createdAt})
+    </insert>
+
+    <insert id="insertSystemEventLog">
+        INSERT INTO system_event_log (log_level, category, message, detail, created_at)
+        VALUES (#{logLevel}, #{category}, #{message}, #{detail}, #{createdAt})
+    </insert>
+</mapper>

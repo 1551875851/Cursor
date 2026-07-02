@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mailcursor.mapper.SysUserMapper">
+
+    <sql id="userColumns">
+        u.id, u.org_id, u.username, u.password, u.nickname, u.status,
+        u.is_super_admin, u.created_at, u.updated_at, o.org_name
+    </sql>
+
+    <resultMap id="SysUserMap" type="com.mailcursor.system.model.SysUser">
+        <id property="id" column="id"/>
+        <result property="orgId" column="org_id"/>
+        <result property="orgName" column="org_name"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="nickname" column="nickname"/>
+        <result property="status" column="status"/>
+        <result property="isSuperAdmin" column="is_super_admin"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="SysUserMap">
+        SELECT <include refid="userColumns"/>
+        FROM sys_user u
+        LEFT JOIN sys_org o ON u.org_id = o.id
+        ORDER BY u.id ASC
+    </select>
+
+    <select id="selectById" resultMap="SysUserMap">
+        SELECT <include refid="userColumns"/>
+        FROM sys_user u
+        LEFT JOIN sys_org o ON u.org_id = o.id
+        WHERE u.id = #{id}
+    </select>
+
+    <select id="selectByUsername" resultMap="SysUserMap">
+        SELECT <include refid="userColumns"/>
+        FROM sys_user u
+        LEFT JOIN sys_org o ON u.org_id = o.id
+        WHERE u.username = #{username}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_user (org_id, username, password, nickname, status, is_super_admin, created_at, updated_at)
+        VALUES (#{orgId}, #{username}, #{password}, #{nickname}, #{status}, #{isSuperAdmin}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="updateWithPassword">
+        UPDATE sys_user
+        SET org_id = #{orgId}, username = #{username}, password = #{password}, nickname = #{nickname},
+            status = #{status}, is_super_admin = #{isSuperAdmin}, updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateWithoutPassword">
+        UPDATE sys_user
+        SET org_id = #{orgId}, username = #{username}, nickname = #{nickname},
+            status = #{status}, is_super_admin = #{isSuperAdmin}, updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM sys_user WHERE id = #{id}
+    </delete>
+
+    <select id="selectRoleIdsByUserId" resultType="long">
+        SELECT role_id FROM sys_user_role WHERE user_id = #{userId}
+    </select>
+
+    <delete id="deleteUserRolesByUserId">
+        DELETE FROM sys_user_role WHERE user_id = #{userId}
+    </delete>
+
+    <insert id="insertUserRole">
+        INSERT INTO sys_user_role (user_id, role_id) VALUES (#{userId}, #{roleId})
+    </insert>
+</mapper>

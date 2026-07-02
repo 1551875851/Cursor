@@ -1,5 +1,6 @@
 package com.mailcursor.auth;
 
+import com.mailcursor.operlog.service.SysOperLogService;
 import com.mailcursor.system.model.SysMenu;
 import com.mailcursor.system.model.SysUser;
 import com.mailcursor.system.service.SysMenuService;
@@ -16,16 +17,19 @@ public class AuthService {
     private final SysUserService sysUserService;
     private final SysMenuService sysMenuService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final SysOperLogService sysOperLogService;
 
     public AuthService(SysUserService sysUserService,
                        SysMenuService sysMenuService,
-                       JwtTokenProvider jwtTokenProvider) {
+                       JwtTokenProvider jwtTokenProvider,
+                       SysOperLogService sysOperLogService) {
         this.sysUserService = sysUserService;
         this.sysMenuService = sysMenuService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.sysOperLogService = sysOperLogService;
     }
 
-    public Map<String, Object> login(String username, String password) {
+    public Map<String, Object> login(String username, String password, String clientIp) {
         SysUser user = sysUserService.getByUsername(username);
         if (user == null) {
             throw new IllegalArgumentException("用户名或密码错误");
@@ -43,6 +47,7 @@ public class AuthService {
         result.put("token", token);
         result.put("user", buildUserInfo(user, superAdmin));
         result.put("menus", menus);
+        sysOperLogService.recordLogin(user.getId(), user.getUsername(), clientIp);
         return result;
     }
 

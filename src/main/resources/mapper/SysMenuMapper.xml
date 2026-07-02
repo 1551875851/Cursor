@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mailcursor.mapper.SysMenuMapper">
+
+    <sql id="menuColumns">
+        id, parent_id, menu_name, menu_type, path, component, icon,
+        sort_order, visible, status, created_at, updated_at
+    </sql>
+
+    <resultMap id="SysMenuMap" type="com.mailcursor.system.model.SysMenu">
+        <id property="id" column="id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="menuName" column="menu_name"/>
+        <result property="menuType" column="menu_type"/>
+        <result property="path" column="path"/>
+        <result property="component" column="component"/>
+        <result property="icon" column="icon"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="visible" column="visible"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="SysMenuMap">
+        SELECT <include refid="menuColumns"/> FROM sys_menu ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <select id="selectByUserId" resultMap="SysMenuMap">
+        SELECT DISTINCT m.id, m.parent_id, m.menu_name, m.menu_type, m.path, m.component, m.icon,
+               m.sort_order, m.visible, m.status, m.created_at, m.updated_at
+        FROM sys_menu m
+        INNER JOIN sys_role_menu rm ON m.id = rm.menu_id
+        INNER JOIN sys_user_role ur ON rm.role_id = ur.role_id
+        WHERE ur.user_id = #{userId} AND m.status = 1 AND m.visible = 1
+        ORDER BY m.sort_order ASC, m.id ASC
+    </select>
+
+    <select id="selectById" resultMap="SysMenuMap">
+        SELECT <include refid="menuColumns"/> FROM sys_menu WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_menu (parent_id, menu_name, menu_type, path, component, icon,
+                              sort_order, visible, status, created_at, updated_at)
+        VALUES (#{parentId}, #{menuName}, #{menuType}, #{path}, #{component}, #{icon},
+                #{sortOrder}, #{visible}, #{status}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update">
+        UPDATE sys_menu
+        SET parent_id = #{parentId}, menu_name = #{menuName}, menu_type = #{menuType},
+            path = #{path}, component = #{component}, icon = #{icon}, sort_order = #{sortOrder},
+            visible = #{visible}, status = #{status}, updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <select id="countChildren" resultType="int">
+        SELECT COUNT(1) FROM sys_menu WHERE parent_id = #{id}
+    </select>
+
+    <delete id="deleteById">
+        DELETE FROM sys_menu WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteRoleMenusByMenuId">
+        DELETE FROM sys_role_menu WHERE menu_id = #{menuId}
+    </delete>
+
+    <delete id="deleteRoleMenusByRoleId">
+        DELETE FROM sys_role_menu WHERE role_id = #{roleId}
+    </delete>
+
+    <insert id="insertRoleMenu">
+        INSERT INTO sys_role_menu (role_id, menu_id) VALUES (#{roleId}, #{menuId})
+    </insert>
+
+    <select id="selectMenuIdsByRoleId" resultType="long">
+        SELECT menu_id FROM sys_role_menu WHERE role_id = #{roleId}
+    </select>
+</mapper>

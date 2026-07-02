@@ -35,20 +35,24 @@ spring:
   datasource:
     url: jdbc:sqlite:${mailcursor.data-dir}/mailcursor.db
     driver-class-name: org.sqlite.JDBC
+    username:
+    password:
   sql:
     init:
-      mode: always
-      schema-locations:
-        - classpath:ddl/001_sys_org.sql
-        - classpath:ddl/002_sys_user.sql
-        - classpath:ddl/003_sys_role.sql
-        - classpath:ddl/004_sys_menu.sql
-        - classpath:ddl/005_sys_user_role.sql
-        - classpath:ddl/006_sys_role_menu.sql
-        - classpath:schema.sql
+      mode: never
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.mailcursor.system.model,com.mailcursor.operlog.model,com.mailcursor.mapper.dto
+  configuration:
+    map-underscore-to-camel-case: true
 
 mailcursor:
   data-dir: ./data
+  database:
+    # 可选值：sqlite / mysql / postgres / oracle，留空则根据 JDBC URL 自动识别
+    type: sqlite
+    schema-init-enabled: true
 
 # 仅允许向此邮箱发送（个人邮箱，只能发给自己）
 mail:
