@@ -54,7 +54,8 @@ import sys, json
 d = json.load(sys.stdin)
 if d.get('code') != 200:
     raise SystemExit('me failed: ' + json.dumps(d, ensure_ascii=False))
-print(d['data']['username'])
+user = d.get('data', {}).get('user') or d.get('data', {})
+print(user.get('username', ''))
 " 2>&1) || {
   echo "FAIL: /api/auth/me 异常"
   echo "$ME_RESP"

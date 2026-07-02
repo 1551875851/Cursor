@@ -63,6 +63,6 @@ if [ -x "$APP/nginx/sbin/nginx" ]; then
 fi
 
 echo "=== 执行发版验证 ==="
-bash "$MC_SCRIPTS/deploy/verify-deploy.sh"
+bash "$MC_SCRIPTS/deploy/verify-deploy.sh" || { echo "FAIL: 发版验证未通过"; exit 1; }
 
 echo "=== 发版完成 ==="
