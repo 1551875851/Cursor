@@ -38,7 +38,14 @@ spring:
   sql:
     init:
       mode: always
-      schema-locations: classpath:schema.sql
+      schema-locations:
+        - classpath:ddl/001_sys_org.sql
+        - classpath:ddl/002_sys_user.sql
+        - classpath:ddl/003_sys_role.sql
+        - classpath:ddl/004_sys_menu.sql
+        - classpath:ddl/005_sys_user_role.sql
+        - classpath:ddl/006_sys_role_menu.sql
+        - classpath:schema.sql
 
 mailcursor:
   data-dir: ./data

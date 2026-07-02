@@ -35,6 +35,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(Collections.singletonMap("message", errors));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
+        log.error("参数或业务校验失败：{}", ex.getMessage());
+        logPersistenceService.saveSystemEvent("ERROR", "VALIDATION", ex.getMessage(), null);
+        return ResponseEntity.badRequest().body(Collections.singletonMap("message", ex.getMessage()));
+    }
+
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException ex) {
         log.error("业务状态异常：{}", ex.getMessage(), ex);

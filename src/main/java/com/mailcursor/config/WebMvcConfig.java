@@ -1,5 +1,6 @@
 package com.mailcursor.config;
 
+import com.mailcursor.auth.AuthInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -9,14 +10,19 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     private final AccessLogInterceptor accessLogInterceptor;
+    private final AuthInterceptor authInterceptor;
 
-    public WebMvcConfig(AccessLogInterceptor accessLogInterceptor) {
+    public WebMvcConfig(AccessLogInterceptor accessLogInterceptor, AuthInterceptor authInterceptor) {
         this.accessLogInterceptor = accessLogInterceptor;
+        this.authInterceptor = authInterceptor;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(accessLogInterceptor).addPathPatterns("/api/**");
+        registry.addInterceptor(authInterceptor)
+                .addPathPatterns("/api/**")
+                .excludePathPatterns("/api/auth/login");
     }
 
     @Override
